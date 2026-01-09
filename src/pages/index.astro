@@ -1,0 +1,147 @@
+---
+import fs from 'fs';
+import path from 'path';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LogoCard from '../components/LogoCard.astro';
+import StructuredData from '../components/StructuredData.astro';
+import { loadMetadata, getCountriesWithCounts } from '../lib/data';
+
+const metadata = loadMetadata();
+const countries = getCountriesWithCounts(metadata);
+
+// Filter logos to only those with coloring pages
+const logosWithColoringPages = metadata.logos.filter(logo => {
+  const coloringPagePath = path.join(
+    process.cwd(),
+    'football_logos',
+    logo.country_slug,
+    'coloring-pages',
+    `${logo.base_name}_coloring.svg`
+  );
+  return fs.existsSync(coloringPagePath);
+});
+
+// Show featured logos (first 12) on homepage
+const featuredLogos = logosWithColoringPages.slice(0, 12);
+
+// Update total count to reflect only logos with coloring pages
+const totalLogosWithFiles = logosWithColoringPages.length;
+---
+
+<BaseLayout
+  title="Football Logo Coloring Pages - Free Printable Soccer Team Logos"
+  description="Discover over 2,115 free printable football (soccer) logo coloring pages from 130 countries. Download and print your favorite team logos for coloring."
+  structuredData={{
+    type: 'website'
+  }}
+>
+  <StructuredData
+    type="website"
+  />
+
+  <!-- Hero Section -->
+  <div class="bg-gradient-to-br from-primary-600 to-purple-700 text-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div class="max-w-3xl">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+          Football Logo Coloring Pages
+        </h1>
+        <p class="text-xl md:text-2xl text-purple-100 mb-8">
+          Free printable coloring pages featuring {totalLogosWithFiles.toLocaleString()} football team logos from {countries.length} countries worldwide.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a
+            href="#countries"
+            class="inline-flex items-center px-6 py-3 bg-white text-primary-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
+          >
+            Browse by Country
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </a>
+          <a
+            href="#featured"
+            class="inline-flex items-center px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-400 transition-colors border-2 border-white/20"
+          >
+            View Featured Logos
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Featured Logos -->
+  <section id="featured" class="py-16 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+        Featured Logo Coloring Pages
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {featuredLogos.map(logo => (
+          <LogoCard logo={logo} showCountry={true} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Countries List -->
+  <section id="countries" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+        Browse by Country
+      </h2>
+      <p class="text-lg text-gray-600 mb-8">
+        Select a country to view all available football team logo coloring pages.
+      </p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {countries.map(({ slug, count }) => {
+          const countryName = slug.split('-').map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' ');
+
+          return (
+            <a
+              href={`/country/${slug}/`}
+              class="group bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 border border-gray-200"
+            >
+              <div class="flex flex-col">
+                <span class="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                  {countryName}
+                </span>
+                <span class="text-sm text-gray-500 mt-1">
+                  {count} {count === 1 ? 'logo' : 'logos'}
+                </span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <!-- SEO Content Section -->
+  <section class="py-16 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto prose prose-lg">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6">
+          About Our Football Logo Coloring Pages
+        </h2>
+        <p class="text-gray-600 leading-relaxed mb-4">
+          Welcome to the world's largest collection of football (soccer) logo coloring pages! We offer free, printable coloring pages featuring team logos from leagues and clubs around the globe. Whether you're a football fan, teacher, parent, or just love coloring, you'll find something here for everyone.
+        </p>
+        <p class="text-gray-600 leading-relaxed mb-4">
+          Our collection includes logos from top leagues including the English Premier League, La Liga, Serie A, Bundesliga, Ligue 1, and many more. Each coloring page is carefully converted to provide clear outlines perfect for coloring with crayons, markers, or colored pencils.
+        </p>
+        <h3 class="text-2xl font-bold text-gray-900 mt-8 mb-4">
+          How to Use These Coloring Pages
+        </h3>
+        <ol class="text-gray-600 leading-relaxed space-y-2 list-decimal list-inside">
+          <li>Browse by country or search for your favorite team</li>
+          <li>Click on the team logo you want to color</li>
+          <li>Download or print the coloring page directly</li>
+          <li>Get creative with your favorite colors!</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

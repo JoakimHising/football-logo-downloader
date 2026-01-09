@@ -1,0 +1,58 @@
+---
+export interface Props {
+  type: 'website' | 'collection' | 'imageObject';
+  data?: any;
+}
+
+const { type, data } = Astro.props;
+const site = Astro.site?.toString() || 'https://your-domain.com';
+
+let structuredData: any;
+
+switch (type) {
+  case 'website':
+    structuredData = {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Football Logo Coloring Pages',
+      description: 'Free printable football (soccer) logo coloring pages from teams around the world',
+      url: site,
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${site}/search?q={search_term_string}`
+        },
+        'query-input': 'required name=search_term_string'
+      }
+    };
+    break;
+
+  case 'collection':
+    structuredData = {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: data?.name || 'Collection',
+      description: data?.description,
+      url: data?.url,
+      numberOfItems: data?.count || 0,
+      ...data
+    };
+    break;
+
+  case 'imageObject':
+    structuredData = {
+      '@context': 'https://schema.org',
+      '@type': 'ImageObject',
+      name: data?.name,
+      description: data?.description,
+      contentUrl: data?.url,
+      license: 'https://creativecommons.org/licenses/by-nc/4.0/',
+      acquireLicensePage: `${site}/license`,
+      ...data
+    };
+    break;
+}
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(structuredData)} />

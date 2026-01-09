@@ -1,0 +1,229 @@
+---
+import fs from 'fs';
+import path from 'path';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../../components/Breadcrumb.astro';
+import StructuredData from '../../../components/StructuredData.astro';
+import { loadMetadata, getLogoPath, formatCountryName } from '../../../lib/data';
+
+export async function getStaticPaths() {
+  const metadata = loadMetadata();
+
+  // Only generate pages for teams that have coloring pages
+  return metadata.logos
+    .filter(logo => {
+      const coloringPagePath = path.join(
+        process.cwd(),
+        'football_logos',
+        logo.country_slug,
+        'coloring-pages',
+        `${logo.base_name}_coloring.svg`
+      );
+      return fs.existsSync(coloringPagePath);
+    })
+    .map((logo) => {
+      return {
+        params: {
+          country: logo.country_slug,
+          team: logo.team_slug,
+        },
+        props: {
+          logo,
+        },
+      };
+    });
+}
+
+const { logo } = Astro.props;
+
+const countryName = formatCountryName(logo.country_slug);
+// Always try SVG for originals (all originals are SVG files)
+const originalPath = getLogoPath(logo, 'original', 'svg');
+const coloringSvgPath = getLogoPath(logo, 'coloring', 'svg');
+const coloringPngPath = getLogoPath(logo, 'coloring', 'png');
+
+// Check if original file actually exists
+const originalFilePath = path.join(process.cwd(), 'football_logos', logo.country_slug, 'svg', `${logo.base_name}.svg`);
+const hasOriginal = fs.existsSync(originalFilePath);
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Countries', href: '/#countries' },
+  { label: countryName, href: `/country/${logo.country_slug}/` },
+  { label: logo.team_name },
+];
+
+const site = Astro.site?.toString() || 'https://your-domain.com';
+const teamPageUrl = `${site}/team/${logo.country_slug}/${logo.team_slug}/`;
+---
+
+<BaseLayout
+  title={`${logo.team_name} Logo Coloring Page - Free Printable Football Logo`}
+  description={`Download and print a free ${logo.team_name} football logo coloring page. High-quality printable coloring page featuring the ${logo.team_name} team logo from ${countryName}.`}
+  image={coloringSvgPath}
+  structuredData={{
+    type: 'imageObject',
+    data: {
+      name: `${logo.team_name} Logo Coloring Page`,
+      description: `Printable coloring page of ${logo.team_name} football team logo from ${countryName}`,
+      url: coloringSvgPath,
+    }
+  }}
+>
+  <StructuredData
+    type="imageObject"
+    data={{
+      name: `${logo.team_name} Logo Coloring Page`,
+      description: `Printable coloring page of ${logo.team_name} football team logo from ${countryName}`,
+      contentUrl: coloringSvgPath,
+      url: teamPageUrl,
+    }}
+  />
+
+  <Breadcrumb items={breadcrumbs} />
+
+  <!-- Page Header -->
+  <div class="bg-gradient-to-br from-primary-600 to-purple-700 text-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+        {logo.team_name} Logo Coloring Page
+      </h1>
+      <p class="text-lg md:text-xl text-purple-100">
+        {countryName} • Free Printable
+      </p>
+    </div>
+  </div>
+
+  <!-- Logo Display and Downloads -->
+  <section class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-6xl mx-auto">
+        <!-- Logo Comparison -->
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+          <!-- Original Logo -->
+          {hasOriginal && (
+            <div class="bg-white rounded-xl shadow-lg p-6">
+              <h2 class="text-xl font-bold text-gray-900 mb-4">Original Logo</h2>
+              <div class="aspect-square bg-gray-50 rounded-lg border-2 border-gray-200 flex items-center justify-center p-8">
+                <img
+                  src={originalPath}
+                  alt={`${logo.team_name} original logo`}
+                  class="w-full h-full object-contain"
+                  loading="eager"
+                />
+              </div>
+            </div>
+          )}
+
+          <!-- Coloring Page -->
+          <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Coloring Page</h2>
+            <div class="aspect-square bg-white rounded-lg border-2 border-gray-200 flex items-center justify-center p-8">
+              <img
+                src={coloringSvgPath}
+                alt={`${logo.team_name} coloring page`}
+                class="w-full h-full object-contain"
+                loading="eager"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Download Section -->
+        <div class="bg-white rounded-xl shadow-lg p-8">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">Download Options</h2>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <a
+              href={coloringSvgPath}
+              download={`${logo.team_slug}-coloring.svg`}
+              class="flex items-center justify-center px-6 py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-md"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download SVG
+            </a>
+            <a
+              href={coloringPngPath}
+              download={`${logo.team_slug}-coloring.png`}
+              class="flex items-center justify-center px-6 py-4 bg-gray-700 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors shadow-md"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download PNG
+            </a>
+          </div>
+          <p class="text-sm text-gray-600 mt-4 text-center">
+            Free for personal and educational use
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Instructions & Info -->
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+          How to Print This Coloring Page
+        </h2>
+        <ol class="space-y-4 text-gray-700">
+          <li class="flex">
+            <span class="flex-shrink-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold mr-4">1</span>
+            <span class="pt-1">Click one of the download buttons above (SVG for best quality, PNG for compatibility)</span>
+          </li>
+          <li class="flex">
+            <span class="flex-shrink-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold mr-4">2</span>
+            <span class="pt-1">Open the downloaded file on your computer</span>
+          </li>
+          <li class="flex">
+            <span class="flex-shrink-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold mr-4">3</span>
+            <span class="pt-1">Print using your browser's print function (Ctrl+P or Cmd+P)</span>
+          </li>
+          <li class="flex">
+            <span class="flex-shrink-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold mr-4">4</span>
+            <span class="pt-1">Start coloring with your favorite crayons, markers, or colored pencils!</span>
+          </li>
+        </ol>
+
+        <div class="mt-12 bg-primary-50 border border-primary-200 rounded-lg p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-3">
+            About This Logo
+          </h3>
+          <dl class="space-y-2">
+            <div class="flex">
+              <dt class="font-semibold text-gray-700 w-24">Team:</dt>
+              <dd class="text-gray-600">{logo.team_name}</dd>
+            </div>
+            <div class="flex">
+              <dt class="font-semibold text-gray-700 w-24">Country:</dt>
+              <dd class="text-gray-600">{countryName}</dd>
+            </div>
+            <div class="flex">
+              <dt class="font-semibold text-gray-700 w-24">Formats:</dt>
+              <dd class="text-gray-600">SVG (vector), PNG (raster)</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Related Teams -->
+        <div class="mt-12">
+          <h3 class="text-xl font-bold text-gray-900 mb-6">
+            More Teams from {countryName}
+          </h3>
+          <a
+            href={`/country/${logo.country_slug}/`}
+            class="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold"
+          >
+            View all {countryName} teams
+            <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

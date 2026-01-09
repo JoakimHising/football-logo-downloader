@@ -1,0 +1,77 @@
+---
+import fs from 'fs';
+import path from 'path';
+import { Image } from 'astro:assets';
+import type { Logo } from '../lib/data';
+import { getLogoPath, formatCountryName } from '../lib/data';
+
+export interface Props {
+  logo: Logo;
+  showCountry?: boolean;
+}
+
+const { logo, showCountry = false } = Astro.props;
+
+// Always try SVG first for originals (all originals are SVG files)
+const originalPath = getLogoPath(logo, 'original', 'svg');
+const coloringPath = getLogoPath(logo, 'coloring', 'svg');
+
+// Check if original file actually exists
+const originalFilePath = path.join(process.cwd(), 'football_logos', logo.country_slug, 'svg', `${logo.base_name}.svg`);
+const hasOriginal = fs.existsSync(originalFilePath);
+
+const teamPageUrl = `/team/${logo.country_slug}/${logo.team_slug}/`;
+---
+
+<article class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
+  <a href={teamPageUrl} class="block flex-1 flex flex-col">
+    <!-- Images Container -->
+    <div class="grid grid-cols-2 gap-2 p-4 bg-gray-50">
+      <!-- Original Logo -->
+      <div class={`flex flex-col gap-2 ${!hasOriginal ? 'opacity-40' : ''}`}>
+        <div class="aspect-square w-full bg-white rounded-lg border border-gray-200 flex items-center justify-center p-6 relative">
+          {hasOriginal ? (
+            <img
+              src={originalPath}
+              alt={`${logo.team_name} original logo`}
+              loading="lazy"
+              class="max-w-full max-h-full object-contain"
+              style="width: auto; height: auto; max-width: 85%; max-height: 85%;"
+            />
+          ) : (
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-xs text-gray-400 text-center px-2">Original not available</span>
+            </div>
+          )}
+        </div>
+        <p class="text-xs font-medium text-gray-600 text-center uppercase tracking-wide">Original</p>
+      </div>
+
+      <!-- Coloring Page -->
+      <div class="flex flex-col gap-2">
+        <div class="aspect-square w-full bg-white rounded-lg border border-gray-200 flex items-center justify-center p-6">
+          <img
+            src={coloringPath}
+            alt={`${logo.team_name} coloring page`}
+            loading="lazy"
+            class="max-w-full max-h-full object-contain"
+            style="width: auto; height: auto; max-width: 85%; max-height: 85%;"
+          />
+        </div>
+        <p class="text-xs font-medium text-gray-600 text-center uppercase tracking-wide">Coloring Page</p>
+      </div>
+    </div>
+
+    <!-- Team Info -->
+    <div class="p-4 min-h-[80px] flex flex-col justify-center">
+      <h3 class="font-semibold text-gray-900 text-center line-clamp-2 mb-1">
+        {logo.team_name}
+      </h3>
+      {showCountry && (
+        <p class="text-sm text-gray-500 text-center">
+          {formatCountryName(logo.country_slug)}
+        </p>
+      )}
+    </div>
+  </a>
+</article>

@@ -1,0 +1,41 @@
+---
+import SEO from '../components/SEO.astro';
+import StructuredData from '../components/StructuredData.astro';
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  structuredData?: any;
+  noindex?: boolean;
+}
+
+const { title, description, image, structuredData, noindex } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    <SEO
+      title={title}
+      description={description}
+      image={image}
+      noindex={noindex}
+    />
+
+    {structuredData && <StructuredData {...structuredData} />}
+
+    <!-- Preconnect to improve performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+  </head>
+  <body class="bg-gray-50 text-gray-900 antialiased">
+    <slot />
+  </body>
+</html>

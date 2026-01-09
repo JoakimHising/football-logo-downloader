@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LogoCard from '../../components/LogoCard.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import StructuredData from '../../components/StructuredData.astro';
+import { loadMetadata, getLogosByCountry, formatCountryName } from '../../lib/data';
+
+export async function getStaticPaths() {
+  const metadata = loadMetadata();
+
+  return metadata.countries.map((countrySlug) => {
+    const logos = getLogosByCountry(metadata, countrySlug);
+    const countryName = formatCountryName(countrySlug);
+
+    return {
+      params: { slug: countrySlug },
+      props: {
+        countryName,
+        countrySlug,
+        logos,
+      },
+    };
+  });
+}
+
+const { countryName, countrySlug, logos } = Astro.props;
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Countries', href: '/#countries' },
+  { label: countryName },
+];
+---
+
+<BaseLayout
+  title={`${countryName} Football Logo Coloring Pages - ${logos.length} Team Logos`}
+  description={`Browse and download ${logos.length} free printable football team logo coloring pages from ${countryName}. Perfect for kids and football fans.`}
+  structuredData={{
+    type: 'collection',
+    data: {
+      name: `${countryName} Football Logos`,
+      description: `Collection of ${logos.length} football team logo coloring pages from ${countryName}`,
+      url: `/country/${countrySlug}/`,
+      count: logos.length,
+    }
+  }}
+>
+  <StructuredData
+    type="collection"
+    data={{
+      name: `${countryName} Football Logos`,
+      description: `Collection of ${logos.length} football team logo coloring pages from ${countryName}`,
+      url: `/country/${countrySlug}/`,
+      count: logos.length,
+    }}
+  />
+
+  <Breadcrumb items={breadcrumbs} />
+
+  <!-- Page Header -->
+  <div class="bg-gradient-to-br from-primary-600 to-purple-700 text-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+        {countryName} Football Logo Coloring Pages
+      </h1>
+      <p class="text-lg md:text-xl text-purple-100">
+        {logos.length} free printable team logo{logos.length !== 1 ? 's' : ''} available
+      </p>
+    </div>
+  </div>
+
+  <!-- Logos Grid -->
+  <section class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      {logos.length > 0 ? (
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {logos.map(logo => (
+            <LogoCard logo={logo} showCountry={false} />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-12">
+          <p class="text-gray-600 text-lg">No logos available for this country yet.</p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- SEO Content -->
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto prose prose-lg">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">
+          About {countryName} Football Team Logos
+        </h2>
+        <p class="text-gray-600 leading-relaxed">
+          Discover our collection of {logos.length} football team logo coloring pages from {countryName}.
+          Each logo has been carefully converted into a printable coloring page format, perfect for kids,
+          educators, and football enthusiasts. Simply click on any team logo to view the full coloring page
+          and print it for free.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
