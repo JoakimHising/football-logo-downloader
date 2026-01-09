@@ -1,0 +1,52 @@
+name: Sync Logos to R2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'football_logos/**'
+      - 'sync-to-r2.js'
+      - '.github/workflows/sync-r2.yml'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  sync:
+    name: Sync to Cloudflare R2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for accurate comparison
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync to R2
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+        run: |
+          echo "🚀 Starting R2 sync..."
+          npm run sync:r2
+          echo "✅ R2 sync complete!"
+
+      - name: Summary
+        run: |
+          echo "### ✅ R2 Sync Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Logos have been synchronized to Cloudflare R2." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Bucket:** ${{ secrets.R2_BUCKET_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Public URL:** ${{ secrets.R2_PUBLIC_URL }}" >> $GITHUB_STEP_SUMMARY

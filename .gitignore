@@ -38,3 +38,33 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+.pnpm-store/
+
+# Astro
+.astro/
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Football logos (stored in Cloudflare R2)
+# Uncomment these lines after setting up R2 to exclude large files from git
+# football_logos/**/*.svg
+# football_logos/**/*.png
+# football_logos/**/coloring-pages/
+
+# Keep metadata file (needed for the viewer)
+!football_logos/metadata.json
+# Keep directory structure
+!football_logos/**/
+!football_logos/**/.gitkeep
